@@ -103,13 +103,48 @@ public class Or {
 
   static List<Integer> merge(Iterator<Posting> p1, Iterator<Posting> p2) {
     List<Integer> answer = new ArrayList<>();
+    answer.add(Integer.MIN_VALUE);
 
-    Posting pp1 = popNextOrNull(p1);
-    Posting pp2 = popNextOrNull(p2);
+    Posting elem1 = popNextOrNull(p1);
+    Posting elem2 = popNextOrNull(p2);
 
 
     // WRITE ALGORITHM HERE
+    while (elem1!=null && elem2!=null) {
+      if (elem1.docID == elem2.docID) {
+        answer.add(elem1.docID);
+        elem1 = popNextOrNull(p1);
+        elem2 = popNextOrNull(p2);
+      }
+      else if (elem1.docID < elem2.docID){
+        if (answer.get(answer.size()-1) < elem1.docID) { // dedup
+          answer.add(elem1.docID);
+          elem1 = popNextOrNull(p1);
+        }
+      }
+      else {
+        if (answer.get(answer.size()-1) < elem2.docID) { // dedup
+          answer.add(elem2.docID);
+          elem2 = popNextOrNull(p2);
+        }
+      }
+    }
 
+    if (elem1==null && elem2!=null) {
+      while (elem2!=null) {
+        answer.add(elem2.docID);
+        elem2 = popNextOrNull(p2);
+      }
+    }
+
+    if (elem2==null && elem1!=null) {
+      while (elem1!=null) {
+        answer.add(elem1.docID);
+        elem1 = popNextOrNull(p1);
+      }
+    }
+
+    answer.remove(0);
     return answer;
   }
 

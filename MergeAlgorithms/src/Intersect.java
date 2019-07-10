@@ -84,10 +84,23 @@ public class Intersect {
   static List<Integer> intersect(Iterator<Posting> p1, Iterator<Posting> p2) {
     List<Integer> answer = new ArrayList<>();
 
-    Posting pp1 = popNextOrNull(p1);
-    Posting pp2 = popNextOrNull(p2);
+    Posting elem1 = popNextOrNull(p1);
+    Posting elem2 = popNextOrNull(p2);
 
     // WRITE ALGORITHM HERE
+    while (elem1!=null && elem2!=null) {
+      if (elem1.docID == elem2.docID) {
+        answer.add(elem1.docID);
+        elem1 = popNextOrNull(p1);
+        elem2 = popNextOrNull(p2);
+      }
+      else if(elem1.docID > elem2.docID) {
+        elem2 = popNextOrNull(p2);
+      }
+      else {
+        elem1 = popNextOrNull(p1);
+      }
+    }
 
     return answer;
   }

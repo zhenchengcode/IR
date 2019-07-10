@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author Christopher Manning
@@ -101,44 +102,86 @@ public class AndNot {
     }
   }
 
+  // in the first list but not in the second list
   static List<Integer> merge(Iterator<Posting> p1, Iterator<Posting> p2) {
     List<Integer> answer = new ArrayList<>();
-    
-    // need to make the same item close to each other => merge algorithm
-    int listHead1 = 0;
-    int listHead2 = 0;
-    int moveFirst = 0;
 
-    while(p1.hasNext()){
-      if(!p2.hasNext()) {
-        answer.add(p1.next().docID);
+    // initialize meaningfully
+    Posting elem1 = popNextOrNull(p1);
+    Posting elem2 = popNextOrNull(p2);
+
+    // cut clear, compare to null instead of comparing next with null (corner case nightmare)
+    while (elem1!=null && elem2!=null) {
+      if (elem1.docID < elem2.docID) {
+        answer.add(elem1.docID);
+        elem1 = popNextOrNull(p1);
       }
-      else{
-        if (moveFirst == 1) {
-          listHead1 = p1.next().docID;
-        }
-        else if (moveFirst == 2) {
-          listHead2 = p2.next().docID;
-        }
-        else {
-          listHead1 = p1.next().docID;
-          listHead2 = p2.next().docID;
-        }
+      else if (elem1.docID > elem2.docID) {
+        elem2 = popNextOrNull(p2);
+      }
+      else {
+        elem1 = popNextOrNull(p1);
+        elem2 = popNextOrNull(p2);
+      }
+    }
 
-        if (listHead1 < listHead2) {
-          answer.add(listHead1);
-          moveFirst = 1; // compare list1 2nd with list2 1st
-        }
-        else if (listHead1 > listHead2) {
-          moveFirst = 2;
-        }
-        else {
-          moveFirst = 0;
-        }
+    // move elem1 till elem1==elem2==null
+    if (elem2==null && elem1!=null) {
+      while (elem1 != null) {
+        answer.add(elem1.docID);
+        elem1 = popNextOrNull(p1);
       }
     }
 
     return answer;
+
+    
+    // need to make the same item close to each other => merge algorithm
+//    int listHead1 = 0;
+//    int listHead2 = 0;
+//    int moveFirst = 0;
+//
+//    while(p1.hasNext() || p2.hasNext()){
+//      if(!p2.hasNext()) { // boundary, if p2 doesn't have next, compare p1 candidate with p2 tail
+//        listHead1 = p1.next().docID; // remember each time you call p1.next() it will move
+//        if (listHead1 != listHead2) {
+//          answer.add(listHead1);
+//        }
+//      }
+//      else if (!p1.hasNext()){ // boundary: if p1 doesn't have next, we still need to consider the last element
+//        listHead2 = p2.next().docID;
+//        if (listHead2 == listHead1) {
+//          return answer;
+//        }
+//        // need the case adding p1 tail, not sure if what will happen after p2.next()
+//        // if exit from this branch, should add p1 tail, otherwise it is already added in else branch
+//      }
+//      else{ // p1, p2 has next
+//        if (moveFirst == 1) {
+//          listHead1 = p1.next().docID;
+//        }
+//        else if (moveFirst == 2) {
+//          listHead2 = p2.next().docID;
+//        }
+//        else {
+//          listHead1 = p1.next().docID;
+//          listHead2 = p2.next().docID;
+//        }
+//
+//        if (listHead1 < listHead2) {
+//          answer.add(listHead1);
+//          moveFirst = 1; // compare list1 2nd with list2 1st
+//        }
+//        else if (listHead1 > listHead2) {
+//          moveFirst = 2;
+//        }
+//        else {
+//          moveFirst = 0;
+//        }
+//      }
+//    }
+
+//    return answer;
   }
 
   /** Load a single postings list: Information about where a single token
